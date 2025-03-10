@@ -7,7 +7,7 @@
         protected String name;
         protected int runLimit;
         protected int swimLimit;
-        static int animalCount = 0;
+        private static int animalCount = 0;
 
         public Animal(String name, int runLimit, int swimLimit) {
             this.name = name;
@@ -17,137 +17,141 @@
         }
 
         public void run(int distance) {
-            if (distance <= runLimit) {
-                System.out.println(name + " пробежал " + distance + " м.");
-            } else {
-                System.out.println(name + " не смог пробежать " + distance + " м.");
-            }
+            System.out.println(name + (distance <= runLimit ? " пробежал " + distance + " м." : " не смог пробежать " + distance + " м."));
         }
 
         public void swim(int distance) {
             if (swimLimit == 0) {
                 System.out.println(name + " не умеет плавать.");
-            } else if (distance <= swimLimit) {
-                System.out.println(name + " проплыл " + distance + " м.");
             } else {
-                System.out.println(name + " не смог проплыть " + distance + " м.");
-            }
-        }
-    }
-
-    // создаем класс "Кот" с наследованием от класса "Животное", где кот с ограничением бег- 200м и не может плавать
-    class Cat extends Animal {
-        static int catCount = 0;
-        private boolean satiety; // Сытость
-
-        public Cat(String name) {
-            super(name, 200, 0);
-            this.satiety = false;
-            catCount++;
-        }
-
-        public boolean isSatiety() {
-            return satiety;
-        }
-
-        public void eat(Bowl bowl, int foodAmount) {
-            if (bowl.getFood() >= foodAmount) {
-                bowl.decreaseFood(foodAmount);
-                this.satiety = true;
-                System.out.println(name + " поел " + foodAmount + " ед. и теперь сыт!");
-            } else {
-                System.out.println(name + " пытался поесть, но еды не хватило!");
-            }
-        }
-    }
-
-    // создаем класс "Собака" с наследованием от класса "Животное", где собака с ограничение бег 500м, плавание -10м
-    class Dog extends Animal {
-        static int dogCount = 0;
-
-        public Dog(String name) {
-            super(name, 500, 10);
-            dogCount++;
-        }
-    }
-
-    // Класс "Миска с едой"
-    class Bowl {
-        private int food;
-
-        public Bowl(int food) {
-            this.food = food;
-        }
-
-        public int getFood() {
-            return food;
-        }
-
-        public void decreaseFood(int amount) {
-            if (food >= amount) {
-                food -= amount;
-            } else {
-                food = 0;
+                System.out.println(name + (distance <= swimLimit ? " проплыл " + distance + " м." : " не смог проплыть " + distance + " м."));
             }
         }
 
-        public void addFood(int amount) {
+        public static int getAnimalCount() { return animalCount; }
+    }
+class Cat extends Animal {
+    private static int catCount = 0;
+    private boolean isFull;
+
+    public Cat(String name, int runLimit) {
+        super(name, runLimit, 0);
+        this.isFull = false;
+        catCount++;
+    }
+
+    public void eat(Bowl bowl, int foodAmount) {
+        isFull = bowl.eatFood(foodAmount);
+        System.out.println(name + (isFull ? " покушал и теперь сыт." : " остался голодным, так как в миске недостаточно еды."));
+    }
+
+    public static int getCatCount() { return catCount; }
+    public boolean isFull() { return isFull; }
+}
+
+class Dog extends Animal {
+    private static int dogCount = 0;
+
+    public Dog(String name, int runLimit, int swimLimit) {
+        super(name, runLimit, swimLimit);
+        dogCount++;
+    }
+    public static int getDogCount() { return dogCount; }
+}
+class Bowl {
+    private int food;
+
+    public Bowl(int food) { this.food = Math.max(food, 0); }
+
+    public void addFood(int amount) {
+        if (amount > 0) {
             food += amount;
-            System.out.println("В миску добавили " + amount + " ед. еды.");
-        }
-
-        public void displayFood() {
-            System.out.println("В миске осталось " + food + " ед. еды.");
+            System.out.println("Миска пополнена. Теперь в миске: " + food);
         }
     }
 
-    // Главный класс Main
-    public class Main {
-        public static void main(String[] args) {
-            Cat cat1 = new Cat("Барсик");
-            Cat cat2 = new Cat("Мурзик");
-            Dog dog1 = new Dog("Бобик");
-
-            cat1.run(150);
-            cat2.run(250);
-            dog1.run(400);
-            dog1.swim(5);
-
-            System.out.println("Всего животных: " + Animal.animalCount);
-            System.out.println("Котов: " + Cat.catCount);
-            System.out.println("Собак: " + Dog.dogCount);
-
-            Bowl bowl = new Bowl(20);
-            bowl.displayFood();
-
-            Cat[] cats = {cat1, cat2};
-            for (Cat cat : cats) {
-                cat.eat(bowl, 15);
-            }
-
-            bowl.displayFood();
-            bowl.addFood(10);
-            bowl.displayFood();
+   public boolean eatFood(int amount) {
+        if (food >= amount) {
+            food -= amount;
+            return true;
         }
-    }*/
-// Практическое задание №2 Применяя интерфейсы написать программу расчета периметра и площади геометрических фигур: круг, прямоугольник, треугольниу.
-interface Shape {
-    double getArea();
-
-    default double getPerimeter() {
-        return 0; // Дефолтное значение, переопределяется в классах
-    }
-
-    default void displayInfo() {
-        System.out.println("Площадь: " + getArea());
-        System.out.println("Периметр: " + getPerimeter());
+        return false;
     }
 }
 
-class Circle implements Shape {
-    private double radius;
+public class Main {
+    public static void main(String[] args) {
+        Cat[] cats = { new Cat("Барсик", 150), new Cat("Мурзик", 180), new Cat("Том", 160) };
+        Dog[] dogs = { new Dog("Рекс", 400, 5), new Dog("Шарик", 450, 7) };
+        Bowl bowl = new Bowl(50);
 
-    public Circle(double radius) {
+        System.out.println("Тестируем бег и плавание:");
+        for (Animal animal : cats) { animal.run(animal.runLimit); animal.swim(5); }
+        for (Animal animal : dogs) { animal.run(animal.runLimit); animal.swim(animal.swimLimit); }
+
+        System.out.printf("\nОбщее количество животных: %d\nКотов: %d\nСобак: %d\n", Animal.getAnimalCount(), Cat.getCatCount(), Dog.getDogCount());
+
+        System.out.println("\nКоты пытаются покушать:");
+        for (Cat cat : cats) cat.eat(bowl, 20);
+
+        System.out.println("\nСытость котов:");
+        for (Cat cat : cats) System.out.println(cat.name + " - " + (cat.isFull() ? "Сыт" : "Голоден"));
+
+        System.out.println("\nПополняем миску...");
+        bowl.addFood(30);
+
+        System.out.println("Коты пытаются покушать снова:");
+        for (Cat cat : cats) if (!cat.isFull()) cat.eat(bowl, 20);
+
+        System.out.println("\nИтоговая сытость котов:");
+        for (Cat cat : cats) System.out.println(cat.name + " - " + (cat.isFull() ? "Сыт" : "Голоден"));
+    }
+}*/
+
+// Практическое задание №2 Применяя интерфейсы написать программу расчета периметра и площади геометрических фигур: круг, прямоугольник, треугольниу.
+/*interface Shape {
+    double getArea();
+//дефолтный метод
+    default double getPerimeter() {
+        if (this instanceof Circle) {
+            Circle c = (Circle) this;
+            return 2 * Math.PI * c.getRadius();
+        } else if (this instanceof Rectangle) {
+            Rectangle r = (Rectangle) this;
+            return 2 * (r.getWidth() + r.getHeight());
+        }
+        return 0;
+    }
+
+    String getFillColor();
+    String getBorderColor();
+}
+
+abstract class AbstractShape implements Shape {
+    private final String fillColor;
+    private final String borderColor;
+
+    public AbstractShape(String fillColor, String borderColor) {
+        this.fillColor = fillColor;
+        this.borderColor = borderColor;
+    }
+
+    @Override
+    public String getFillColor() {
+        return fillColor;
+    }
+
+    @Override
+    public String getBorderColor() {
+        return borderColor;
+    }
+}
+
+class Circle extends AbstractShape {
+    private final double radius;
+
+    public Circle(double radius, String fillColor, String borderColor) {
+        super(fillColor, borderColor);
         this.radius = radius;
     }
 
@@ -156,16 +160,16 @@ class Circle implements Shape {
         return Math.PI * radius * radius;
     }
 
-    @Override
-    public double getPerimeter() {
-        return 2 * Math.PI * radius;
+    public double getRadius() {
+        return radius;
     }
 }
 
-class Rectangle implements Shape {
-    private double width, height;
+class Rectangle extends AbstractShape {
+    private final double width, height;
 
-    public Rectangle(double width, double height) {
+    public Rectangle(double width, double height, String fillColor, String borderColor) {
+        super(fillColor, borderColor);
         this.width = width;
         this.height = height;
     }
@@ -175,16 +179,20 @@ class Rectangle implements Shape {
         return width * height;
     }
 
-    @Override
-    public double getPerimeter() {
-        return 2 * (width + height);
+    public double getWidth() {
+        return width;
+    }
+
+    public double getHeight() {
+        return height;
     }
 }
 
-class Triangle implements Shape {
-    private double a, b, c;
+class Triangle extends AbstractShape {
+    private final double a, b, c;
 
-    public Triangle(double a, double b, double c) {
+    public Triangle(double a, double b, double c, String fillColor, String borderColor) {
+        super(fillColor, borderColor);
         this.a = a;
         this.b = b;
         this.c = c;
@@ -204,17 +212,23 @@ class Triangle implements Shape {
 
 public class Main {
     public static void main(String[] args) {
-        Shape circle = new Circle(5);
-        Shape rectangle = new Rectangle(4, 6);
-        Shape triangle = new Triangle(3, 4, 5);
+        Shape[] shapes = {
+                new Circle(5, "Red", "Black"),
+                new Rectangle(4, 6, "Blue", "Green"),
+                new Triangle(3, 4, 5, "Yellow", "Purple")
+        };
 
-        System.out.println("Круг:");
-        circle.displayInfo();
-
-        System.out.println("\nПрямоугольник:");
-        rectangle.displayInfo();
-
-        System.out.println("\nТреугольник:");
-        triangle.displayInfo();
+        for (Shape shape : shapes) {
+            printShapeInfo(shape);
+        }
     }
-}
+
+    private static void printShapeInfo(Shape shape) {
+        System.out.println("Фигура: " + shape.getClass().getSimpleName());
+        System.out.println("Площадь: " + shape.getArea());
+        System.out.println("Периметр: " + shape.getPerimeter());
+        System.out.println("Цвет фона: " + shape.getFillColor());
+        System.out.println("Цвет границ: " + shape.getBorderColor());
+        System.out.println("----------------------");
+    }
+}*/
